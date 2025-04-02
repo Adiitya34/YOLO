@@ -1,18 +1,22 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import Link from "next/link"
-import { MapPin, Instagram, Twitter, Facebook } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { motion } from "framer-motion"
+import type React from "react";
+import { useState } from "react";
+import Link from "next/link";
+import { MapPin, Instagram, Twitter, Facebook } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 
 export default function Footer() {
+  const [email, setEmail] = useState(""); // Add state for email input
+
   const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Implement newsletter subscription logic
-  }
+    e.preventDefault();
+    // Implement newsletter subscription logic here, e.g., API call
+    console.log("Subscribed with email:", email);
+    setEmail(""); // Clear input after submission
+  };
 
   return (
     <footer className="border-t py-12 bg-muted/40">
@@ -139,7 +143,14 @@ export default function Footer() {
             <p className="text-muted-foreground mb-4">Subscribe to receive travel tips and exclusive offers.</p>
             <form onSubmit={handleSubscribe} className="space-y-2">
               <div className="flex">
-                <Input type="email" placeholder="Your email" className="rounded-r-none" required />
+                <Input
+                  type="email"
+                  placeholder="Your email"
+                  value={email} // Controlled input with state
+                  onChange={(e) => setEmail(e.target.value)} // Handle changes
+                  className="rounded-r-none"
+                  required
+                />
                 <Button type="submit" className="rounded-l-none">
                   Subscribe
                 </Button>
@@ -155,10 +166,9 @@ export default function Footer() {
           transition={{ duration: 0.5, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <p>&copy; {new Date().getFullYear()} YOLOtrippin. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} YOLOtrippin. All rights reserved.</p>
         </motion.div>
       </div>
     </footer>
-  )
+  );
 }
-

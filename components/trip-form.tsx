@@ -30,7 +30,7 @@ export default function TripForm() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [duration, setDuration] = useState(3);
+  const [duration, setDuration] = useState(3); // Initialized as number
   const [budget, setBudget] = useState("moderate");
   const [travelerType, setTravelerType] = useState("solo");
   const [preferences, setPreferences] = useState("");
@@ -60,7 +60,6 @@ export default function TripForm() {
     setIsGenerating(true);
 
     try {
-      // Generate itinerary using AI
       const itinerary = await generateItinerary({
         destination,
         duration,
@@ -69,7 +68,6 @@ export default function TripForm() {
         preferences,
       });
 
-      // Log the trip data before saving
       const tripData = {
         userId: user.uid,
         destination,
@@ -81,7 +79,6 @@ export default function TripForm() {
       };
       console.log("Trip data to save:", tripData);
 
-      // Save trip to Firebase
       const tripId = await saveTrip(tripData);
 
       toast({
@@ -89,7 +86,6 @@ export default function TripForm() {
         description: "Your personalized trip plan is ready to view.",
       });
 
-      // Navigate to the trip details page
       router.push(`/trips/${tripId}`);
     } catch (error) {
       console.error("Error in handleSubmit:", error);
@@ -137,7 +133,11 @@ export default function TripForm() {
                 min={1}
                 max={30}
                 value={duration}
-                onChange={(e) => setDuration(Number.parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only set if the value is a valid number or empty; prevent NaN
+                  setDuration(value === "" || isNaN(Number(value)) ? 1 : Number.parseInt(value));
+                }}
                 disabled={!destination || isGenerating}
               />
             </motion.div>
