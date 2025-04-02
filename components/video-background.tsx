@@ -1,17 +1,23 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useRef, useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 
-interface VideoBackgroundProps {
-  videoSrc: string
+interface ImageBackgroundProps {
+  imageSrc: string
   overlayOpacity?: number
   children?: React.ReactNode
 }
 
-export default function VideoBackground({ videoSrc, overlayOpacity = 0.5, children }: VideoBackgroundProps) {
+export default function ImageBackground({ 
+  imageSrc = "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0", 
+  
+  // ✅ Replace with a direct image URL
+  // https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0
+  overlayOpacity = 0.5, 
+  children 
+}: ImageBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const { scrollYProgress } = useScroll({
@@ -30,23 +36,16 @@ export default function VideoBackground({ videoSrc, overlayOpacity = 0.5, childr
   return (
     <div ref={containerRef} className="relative w-full overflow-hidden">
       <motion.div
-        className="absolute inset-0 w-full h-full"
-        style={{ scale, opacity }}
+        className="absolute inset-0 w-full h-full bg-cover bg-center"
+        style={{ 
+          backgroundImage: `url(${imageSrc})`, 
+          scale, 
+          opacity 
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          onCanPlay={() => setIsLoaded(true)}
-        >
-          <source src={videoSrc} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
         <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }} />
       </motion.div>
 
@@ -61,4 +60,3 @@ export default function VideoBackground({ videoSrc, overlayOpacity = 0.5, childr
     </div>
   )
 }
-
