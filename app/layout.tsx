@@ -10,7 +10,7 @@ import { DestinationProvider } from "@/lib/destination-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "YOLOtrippin - AI Trip Planner for India",
+  title: "YOLOtrippin         : )",
   description: "Plan your perfect trip to India with AI-generated itineraries",
     generator: 'v0.dev'
 }

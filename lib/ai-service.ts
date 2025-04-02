@@ -17,32 +17,32 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
     {
       "days": [
         {
-          "title": "Day 1: [Title]",
-          "description": "Overview of the day",
+          "title": "Day 1: [Specific Title for ${destination}]",
+          "description": "Overview of the day including highlights in ${destination}",
           "activities": [
             {
-              "name": "Activity name",
-              "description": "Activity description",
-              "time": "Time of day",
-              "cost": "Estimated cost",
-              "imageUrl": "URL to an image",
-              "link": "Optional booking or information link"
+              "name": "Specific activity in ${destination}",
+              "description": "Detailed description of the activity",
+              "time": "Time of day (e.g., Morning, Afternoon)",
+              "cost": "Estimated cost in ₹",
+              "imageUrl": "A valid Unsplash URL (e.g., https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80) specifically matching this activity in ${destination}—do not use placeholders like 'URL to an image'",
+              "link": "Optional booking or info URL"
             }
           ],
           "accommodation": {
-            "name": "Hotel or accommodation name",
-            "description": "Brief description",
-            "cost": "Cost per night",
-            "imageUrl": "URL to an image",
-            "link": "Booking link"
+            "name": "Specific hotel or stay in ${destination}",
+            "description": "Brief description of the accommodation",
+            "cost": "Cost per night in ₹",
+            "imageUrl": "A valid Unsplash URL (e.g., https://images.unsplash.com/photo-1519999482648-250c296e18c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80) specifically matching this accommodation in ${destination}—do not use placeholders like 'URL to an image'",
+            "link": "Booking URL"
           }
         }
       ],
-      "estimatedCost": "Total estimated cost for the trip",
-      "travelTips": ["Tip 1", "Tip 2", "Tip 3"]
+      "estimatedCost": "Total estimated cost in ₹ for the trip",
+      "travelTips": ["Tip 1 specific to ${destination}", "Tip 2", "Tip 3"]
     }
     
-    Include authentic Indian experiences, local cuisine, cultural activities, and practical information. For each activity and accommodation, provide realistic names, descriptions, and approximate costs in Indian Rupees (₹). Return only the JSON object, with no additional text, comments, or markdown.
+    Include authentic Indian experiences, local cuisine, cultural activities, and practical information specific to ${destination}. For each activity and accommodation, provide realistic names, descriptions, and approximate costs in Indian Rupees (₹). For "imageUrl" fields, include specific Unsplash URLs that visually represent the activity or accommodation in ${destination} (e.g., search Unsplash for "${destination} culture", "${destination} landmark", or "${destination} hotel" and use the exact URL). All fields are required except "time", "cost", and "link" in activities, and "cost" and "link" in accommodation, which are optional. Return only the JSON object, with no additional text, comments, or markdown.
   `;
 
   try {
@@ -98,11 +98,25 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
       itinerary = JSON.parse(jsonText);
     } catch (parseError) {
       console.error("JSON parsing failed. Attempting to fix unquoted keys:", parseError);
-      // Attempt to fix unquoted property names (e.g., days: -> "days":)
       const fixedJsonText = jsonText.replace(/(\w+)(?=\s*:)/g, '"$1"');
       console.log("Fixed JSON text:", fixedJsonText);
       itinerary = JSON.parse(fixedJsonText);
     }
+
+    // Post-process to ensure valid image URLs
+    itinerary.days.forEach((day) => {
+      day.activities.forEach((activity) => {
+        if (!activity.imageUrl || activity.imageUrl === "URL to an image") {
+          activity.imageUrl = `https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
+          console.log(`Replaced activity imageUrl for ${activity.name} with fallback`);
+        }
+      });
+
+      if (day.accommodation && (!day.accommodation.imageUrl || day.accommodation.imageUrl === "URL to an image")) {
+        day.accommodation.imageUrl = `https://images.unsplash.com/photo-1519999482648-250c296e18c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
+        console.log(`Replaced accommodation imageUrl for ${day.accommodation.name} with fallback`);
+      }
+    });
 
     return itinerary;
   } catch (error) {

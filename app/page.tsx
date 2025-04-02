@@ -1,12 +1,14 @@
-import { Suspense } from "react"
-import Hero from "@/components/hero"
-import SearchDestination from "@/components/search-destination"
-import TripForm from "@/components/trip-form"
-import AuthCheck from "@/components/auth-check"
-import { Toaster } from "@/components/ui/toaster"
-import PopularDestinations from "@/components/popular-destinations"
-import Features from "@/components/features"
-import Testimonials from "@/components/testimonials"
+// app/page.tsx
+import { Suspense } from "react";
+import Hero from "@/components/hero";
+import SearchDestination from "@/components/search-destination";
+import TripForm from "@/components/trip-form";
+import AuthCheck from "@/components/auth-check";
+import { Toaster } from "@/components/ui/toaster";
+import PopularDestinations from "@/components/popular-destinations";
+import Features from "@/components/features";
+import Testimonials from "@/components/testimonials";
+
 
 export default function Home() {
   return (
@@ -25,6 +27,5 @@ export default function Home() {
       <Features />
       <Testimonials />
     </main>
-  )
+  );
 }
-
