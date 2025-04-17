@@ -1,47 +1,47 @@
-"use client"
-import { motion } from "framer-motion"
-import DestinationCard from "./destination-card"
+"use client";
+import { motion } from "framer-motion";
+import DestinationCard from "./destination-card";
 
 export default function PopularDestinations() {
-  // Add descriptions to destinations
+  // Add descriptions to destinations with local image paths
   const destinationsWithDescriptions = [
     {
       id: "1",
       name: "Agra",
-      imageUrl: "/placeholder.svg?height=300&width=400",
+      imageUrl: "/images/agra.jpg", // Local image path in public/images
       description: "Home to the iconic Taj Mahal, a testament to eternal love",
     },
     {
       id: "2",
       name: "Jaipur",
-      imageUrl: "/placeholder.svg?height=300&width=400",
+      imageUrl: "/images/jaipur.jpg", // Local image path in public/images
       description: "The Pink City with majestic palaces and vibrant bazaars",
     },
     {
       id: "3",
       name: "Goa",
-      imageUrl: "/placeholder.svg?height=300&width=400",
+      imageUrl: "/images/goa.jpg", // Local image path in public/images
       description: "Sun-kissed beaches and vibrant nightlife on the Arabian Sea",
     },
     {
       id: "6",
       name: "Varanasi",
-      imageUrl: "/placeholder.svg?height=300&width=400",
+      imageUrl: "/images/varanasi.jpg", // Local image path in public/images
       description: "Ancient spiritual city on the banks of the sacred Ganges",
     },
     {
       id: "7",
       name: "Kerala",
-      imageUrl: "/placeholder.svg?height=300&width=400",
+      imageUrl: "/images/kerala.jpg", // Local image path in public/images
       description: "Serene backwaters and lush landscapes in God's Own Country",
     },
     {
       id: "8",
       name: "Udaipur",
-      imageUrl: "/placeholder.svg?height=300&width=400",
+      imageUrl: "/images/udaipur.jpg", // Local image path in public/images
       description: "The City of Lakes with romantic palaces and rich heritage",
     },
-  ]
+  ];
 
   return (
     <section className="py-16 bg-muted/30">
@@ -55,7 +55,7 @@ export default function PopularDestinations() {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Popular Destinations</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore India's most beloved destinations, each offering unique experiences and unforgettable memories
+            Explore India's most beloved destinations, each offering unique experiences and unforgettable memories.
           </p>
         </motion.div>
 
@@ -73,6 +73,5 @@ export default function PopularDestinations() {
         </div>
       </div>
     </section>
-  )
+  );
 }
-

@@ -1,3 +1,4 @@
+// firebase-config.ts
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -11,10 +12,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase app (singleton pattern)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Export initialized instances
 export const initializeFirebase = () => app;
 export const getFirestoreInstance = () => getFirestore(app);
 export const auth = getAuth(app);

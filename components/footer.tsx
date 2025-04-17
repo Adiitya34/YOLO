@@ -6,16 +6,47 @@ import Link from "next/link";
 import { MapPin, Instagram, Twitter, Facebook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
+import { getFirestoreInstance } from "@/lib/firebase-config"; // Updated import
+import { collection, addDoc } from "firebase/firestore"; // Keep these imports
 
 export default function Footer() {
-  const [email, setEmail] = useState(""); // Add state for email input
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement newsletter subscription logic here, e.g., API call
-    console.log("Subscribed with email:", email);
-    setEmail(""); // Clear input after submission
+
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const db = getFirestoreInstance(); // Get Firestore instance
+      await addDoc(collection(db, "subscribers"), {
+        email,
+        subscribedAt: new Date().toISOString(),
+      });
+
+      toast({
+        title: "Subscribed!",
+        description: "Thanks for joining our newsletter!",
+      });
+      setEmail(""); // Clear input
+    } catch (error) {
+      console.error("Error subscribing:", error);
+      toast({
+        title: "Subscription Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -99,34 +130,22 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/?destination=Jaipur"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link href="/?destination=Jaipur" className="text-muted-foreground hover:text-primary transition-colors">
                   Jaipur
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/?destination=Kerala"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link href="/?destination=Kerala" className="text-muted-foreground hover:text-primary transition-colors">
                   Kerala
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/?destination=Varanasi"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link href="/?destination=Varanasi" className="text-muted-foreground hover:text-primary transition-colors">
                   Varanasi
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/?destination=Darjeeling"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <Link href="/?destination=Darjeeling" className="text-muted-foreground hover:text-primary transition-colors">
                   Darjeeling
                 </Link>
               </li>
@@ -146,8 +165,8 @@ export default function Footer() {
                 <Input
                   type="email"
                   placeholder="Your email"
-                  value={email} // Controlled input with state
-                  onChange={(e) => setEmail(e.target.value)} // Handle changes
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="rounded-r-none"
                   required
                 />

@@ -3,16 +3,21 @@ dotenv.config();
 
 import type { ItineraryParams, Itinerary } from "./types";
 
+// Define a placeholder/loading animation URL (can be a GIF or static image)
+const PLACEHOLDER_IMAGE = "https://media.giphy.com/media/3o7 bu3XilJ5BOiSGic/giphy.gif"; // Generic loading animation
+// Alternative: Static placeholder
+// const PLACEHOLDER_IMAGE = "https://via.placeholder.com/800x400.png?text=Loading+Travel+Destination";
+
 export async function generateItinerary(params: ItineraryParams): Promise<Itinerary> {
   const { destination, duration, budget, travelerType, preferences } = params;
 
-  // Create a detailed prompt for the AI
   const prompt = `
-    Create a detailed ${duration}-day travel itinerary for a trip to ${destination}, India.
+    Create a detailed travel itinerary for a ${duration}-day trip to ${destination}, India.
+    The itinerary must have exactly ${duration} days, each with a title, description, at least 3 activities, and accommodation.
     Budget level: ${budget}
     Traveler type: ${travelerType}
     Preferences: ${preferences || "No specific preferences"}
-    
+
     Format the response as a JSON object with the following structure:
     {
       "days": [
@@ -25,7 +30,7 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
               "description": "Detailed description of the activity",
               "time": "Time of day (e.g., Morning, Afternoon)",
               "cost": "Estimated cost in ₹",
-              "imageUrl": "A valid Unsplash URL (e.g., https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80) specifically matching this activity in ${destination}—do not use placeholders like 'URL to an image'",
+              "imageUrl": "A valid URL for an image of this activity in ${destination}, or leave empty",
               "link": "Optional booking or info URL"
             }
           ],
@@ -33,28 +38,28 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
             "name": "Specific hotel or stay in ${destination}",
             "description": "Brief description of the accommodation",
             "cost": "Cost per night in ₹",
-            "imageUrl": "A valid Unsplash URL (e.g., https://images.unsplash.com/photo-1519999482648-250c296e18c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80) specifically matching this accommodation in ${destination}—do not use placeholders like 'URL to an image'",
+            "imageUrl": "A valid URL for an image of this accommodation in ${destination}, or leave empty",
             "link": "Booking URL"
           }
         }
       ],
-      "estimatedCost": "Total estimated cost in ₹ for the trip",
+      "estimatedCost": "Total estimated cost in ₹ for the entire trip",
       "travelTips": ["Tip 1 specific to ${destination}", "Tip 2", "Tip 3"]
     }
-    
-    Include authentic Indian experiences, local cuisine, cultural activities, and practical information specific to ${destination}. For each activity and accommodation, provide realistic names, descriptions, and approximate costs in Indian Rupees (₹). For "imageUrl" fields, include specific Unsplash URLs that visually represent the activity or accommodation in ${destination} (e.g., search Unsplash for "${destination} culture", "${destination} landmark", or "${destination} hotel" and use the exact URL). All fields are required except "time", "cost", and "link" in activities, and "cost" and "link" in accommodation, which are optional. Return only the JSON object, with no additional text, comments, or markdown.
+
+    Ensure that:
+    - There are exactly ${duration} days in the itinerary.
+    - Each day has at least 3 activities.
+    - All fields are populated with realistic data specific to ${destination}.
+    - Return only the JSON object.
   `;
 
   try {
-    // Get the API key from environment variables
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-    console.log("API Key loaded:", apiKey ? "Yes" : "No"); // Debug log
-
     if (!apiKey) {
       throw new Error("GOOGLE_GEMINI_API_KEY environment variable is not set");
     }
 
-    // Call the Gemini API
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
       {
@@ -63,14 +68,10 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 4000,
+            maxOutputTokens: 8000,
           },
         }),
       }
@@ -82,39 +83,54 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
     }
 
     const data = await response.json();
+    const rawText = data.candidates[0].content.parts[0].text;
+    console.log("Raw API Response:", rawText); // Log raw response for debugging
 
-    // Extract the text from the response
-    const text = data.candidates[0].content.parts[0].text;
-    console.log("Raw API response text:", text); // Log raw response for debugging
+    // Extract JSON more robustly
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    let jsonText = jsonMatch ? jsonMatch[0] : rawText;
+    console.log("Extracted JSON Text:", jsonText); // Log extracted JSON
 
-    // Attempt to find and extract valid JSON
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const jsonText = jsonMatch ? jsonMatch[0] : text;
-    console.log("Extracted JSON text:", jsonText); // Log extracted JSON
-
-    // Parse the JSON response
+    // Attempt to parse JSON, with fallback fixes
     let itinerary: Itinerary;
     try {
       itinerary = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error("JSON parsing failed. Attempting to fix unquoted keys:", parseError);
-      const fixedJsonText = jsonText.replace(/(\w+)(?=\s*:)/g, '"$1"');
-      console.log("Fixed JSON text:", fixedJsonText);
-      itinerary = JSON.parse(fixedJsonText);
+      console.error("Initial JSON parsing failed:", parseError);
+
+      // Fix common JSON issues: unquoted keys, trailing commas, incomplete objects
+      jsonText = jsonText
+        .replace(/(\w+)(?=\s*:)/g, '"$1"') // Quote unquoted keys
+        .replace(/,\s*}/g, "}") 
+        .replace(/,\s*]/g, "]"); 
+
+      console.log("Fixed JSON Text:", jsonText);
+
+      try {
+        itinerary = JSON.parse(jsonText);
+      } catch (secondParseError) {
+        console.error("Second JSON parsing attempt failed:", secondParseError);
+        throw new Error("Unable to parse API response as valid JSON.");
+      }
     }
 
-    // Post-process to ensure valid image URLs
+    // Validate the itinerary
+    if (itinerary.days.length !== duration) {
+      console.warn(`Generated itinerary has ${itinerary.days.length} days instead of ${duration}.`);
+    }
+
+    // Ensure placeholder image URLs
     itinerary.days.forEach((day) => {
       day.activities.forEach((activity) => {
-        if (!activity.imageUrl || activity.imageUrl === "URL to an image") {
-          activity.imageUrl = `https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
-          console.log(`Replaced activity imageUrl for ${activity.name} with fallback`);
+        // Use placeholder if imageUrl is missing or invalid
+        if (!activity.imageUrl || activity.imageUrl === "" || activity.imageUrl.includes("placeholder")) {
+          activity.imageUrl = PLACEHOLDER_IMAGE;
+          console.log(`Set placeholder image for activity: ${activity.name}`);
         }
       });
-
-      if (day.accommodation && (!day.accommodation.imageUrl || day.accommodation.imageUrl === "URL to an image")) {
-        day.accommodation.imageUrl = `https://images.unsplash.com/photo-1519999482648-250c296e18c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
-        console.log(`Replaced accommodation imageUrl for ${day.accommodation.name} with fallback`);
+      if (day.accommodation && (!day.accommodation.imageUrl || day.accommodation.imageUrl === "" || day.accommodation.imageUrl.includes("placeholder"))) {
+        day.accommodation.imageUrl = PLACEHOLDER_IMAGE;
+        console.log(`Set placeholder image for accommodation: ${day.accommodation.name}`);
       }
     });
 
