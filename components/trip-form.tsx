@@ -55,7 +55,7 @@ export default function TripForm() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [tripName, setTripName] = useState(""); // New: Trip name
+  const [tripName, setTripName] = useState("");
   const [duration, setDuration] = useState(3);
   const [budget, setBudget] = useState("moderate");
   const [travelerType, setTravelerType] = useState("solo");
@@ -96,7 +96,7 @@ export default function TripForm() {
 
       const tripData = {
         userId: user.uid,
-        name: tripName || `${destination} Trip`, // Default name if empty
+        name: tripName || `${destination} Trip`,
         destination,
         duration,
         budget,
@@ -163,27 +163,20 @@ export default function TripForm() {
           <CardContent className="p-6 space-y-8">
             {/* Trip Name */}
             <motion.div variants={itemVariants} className="space-y-3">
-              <Label htmlFor="tripName" className="text-sm font-medium text-foreground">
-                Trip Name
-              </Label>
+              <Label htmlFor="tripName">Trip Name</Label>
               <Input
                 id="tripName"
                 placeholder="e.g., My Goa Getaway"
                 value={tripName}
                 onChange={(e) => setTripName(e.target.value)}
                 disabled={!destination || isGenerating}
-                className="w-full rounded-md border border-input focus:ring-2 focus:ring-primary"
               />
             </motion.div>
 
             {/* Duration */}
             <motion.div variants={itemVariants} className="space-y-3">
-              <Label
-                htmlFor="duration"
-                className="flex items-center gap-2 text-sm font-medium text-foreground"
-              >
-                <Calendar className="h-4 w-4 text-primary" />
-                Trip Duration (days)
+              <Label htmlFor="duration" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-primary" /> Trip Duration (days)
               </Label>
               <Input
                 id="duration"
@@ -193,19 +186,16 @@ export default function TripForm() {
                 value={duration}
                 onChange={(e) => {
                   const value = e.target.value;
-                  setDuration(value === "" || isNaN(Number(value)) ? 1 : Number.parseInt(value));
+                  setDuration(value === "" || isNaN(Number(value)) ? 1 : Number(value));
                 }}
                 disabled={!destination || isGenerating}
-                className="w-full max-w-xs rounded-md border border-input focus:ring-2 focus:ring-primary"
-                placeholder="e.g., 3"
               />
             </motion.div>
 
             {/* Budget */}
             <motion.div variants={itemVariants} className="space-y-3">
-              <Label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Wallet className="h-4 w-4 text-primary" />
-                Budget
+              <Label className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-primary" /> Budget
               </Label>
               <RadioGroup
                 value={budget}
@@ -231,9 +221,8 @@ export default function TripForm() {
 
             {/* Traveler Type */}
             <motion.div variants={itemVariants} className="space-y-3">
-              <Label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Users className="h-4 w-4 text-primary" />
-                Traveler Type
+              <Label className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" /> Traveler Type
               </Label>
               <RadioGroup
                 value={travelerType}
@@ -259,19 +248,13 @@ export default function TripForm() {
 
             {/* Preferences */}
             <motion.div variants={itemVariants} className="space-y-3">
-              <Label
-                htmlFor="preferences"
-                className="text-sm font-medium text-foreground"
-              >
-                Additional Preferences
-              </Label>
+              <Label htmlFor="preferences">Additional Preferences</Label>
               <Textarea
                 id="preferences"
                 placeholder="e.g., adventure, culture, food, relaxation"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
                 disabled={!destination || isGenerating}
-                className="min-h-[120px] rounded-md border border-input focus:ring-2 focus:ring-primary"
               />
             </motion.div>
           </CardContent>
@@ -283,22 +266,18 @@ export default function TripForm() {
                 variant="outline"
                 onClick={handleReset}
                 disabled={isGenerating}
-                className="px-6 py-2 text-sm font-medium rounded-md"
               >
-                <X className="mr-2 h-4 w-4" />
-                Reset
+                <X className="mr-2 h-4 w-4" /> Reset
               </Button>
             </motion.div>
             <motion.div whileHover="hover" whileTap="tap" variants={buttonVariants}>
               <Button
                 type="submit"
                 disabled={!destination || isGenerating}
-                className="px-8 py-2 text-lg font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Generating...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...
                   </>
                 ) : (
                   "Create Itinerary"

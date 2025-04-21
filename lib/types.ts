@@ -10,7 +10,8 @@ export type Trip = {
   travelerType: string;
   preferences: string;
   itinerary: Itinerary;
-  createdAt: string | Timestamp; // Allow both string and Timestamp
+  createdAt: string | Timestamp;
+  imageUrl?: string; // Add for destination image
 };
 
 export type ItineraryParams = {
@@ -18,28 +19,29 @@ export type ItineraryParams = {
   duration: number;
   budget: string;
   travelerType: string;
-  preferences?: string; // Made optional to match earlier usage
+  preferences?: string;
 };
 
 // Itinerary types
 export type Itinerary = {
-  destination: string; // Added to match enhanced prompt
-  duration: number; // Added for consistency
-  budget: string; // Added for consistency
-  travelerType: string; // Added for consistency
+  destination: string;
+  duration: number;
+  budget: string;
+  travelerType: string;
   days: ItineraryDay[];
-  estimatedCost: string; // Kept your original field name
+  estimatedCost: string;
   travelTips: string[];
-  weatherNote: string; // Added from enhanced prompt
+  weatherNote: string;
+  imageUrl?: string; // Add for destination image
 };
 
 export type ItineraryDay = {
-  dayNumber: number; // Added for explicit day tracking
+  dayNumber: number;
   title: string;
   description: string;
   activities: Activity[];
-  accommodation?: Accommodation; // Kept optional as in your original
-  transportation?: Transportation; // Added for new feature
+  accommodation?: Accommodation;
+  transportation?: Transportation;
 };
 
 export type Activity = {
@@ -47,7 +49,7 @@ export type Activity = {
   description: string;
   time?: string;
   cost?: string;
-  imageUrl?: string; // Kept optional as in your original
+  imageUrl?: string;
   link?: string;
 };
 
@@ -55,12 +57,12 @@ export type Accommodation = {
   name: string;
   description: string;
   cost?: string;
-  imageUrl?: string; // Kept optional as in your original
+  imageUrl?: string;
   link?: string;
 };
 
 export type Transportation = {
-  mode: string; // e.g., "Auto-rickshaw", "Rental Car"
+  mode: string;
   description: string;
-  cost: string; // Changed to string to match other cost fields
+  cost: string;
 };

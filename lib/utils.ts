@@ -8,20 +8,20 @@ export function cn(...inputs: ClassValue[]): string {
 
 export function formatDate(dateInput: string | Timestamp | Date | null | undefined): string {
   if (!dateInput) {
-    return "N/A"; // Handle null or undefined
+    return "N/A";
   }
 
   let date: Date;
   if (dateInput instanceof Timestamp) {
-    date = dateInput.toDate(); // Convert Firestore Timestamp to Date
+    date = dateInput.toDate();
   } else if (dateInput instanceof Date) {
     date = dateInput;
   } else {
-    date = new Date(dateInput); // Assume string
+    date = new Date(dateInput);
   }
 
   if (isNaN(date.getTime())) {
-    return "Invalid Date"; // Handle invalid dates
+    return "Invalid Date";
   }
 
   return new Intl.DateTimeFormat("en-US", {
@@ -29,4 +29,16 @@ export function formatDate(dateInput: string | Timestamp | Date | null | undefin
     month: "short",
     day: "numeric",
   }).format(date);
+}
+
+export function getStaticImage(destination: string): string {
+  const imageMap: { [key: string]: string } = {
+    agra: "/images/agra.jpg",
+    goa: "/images/goa.jpg",
+    jaipur: "/images/jaipur.jpg",
+    kerala: "/images/kerala.jpg",
+    udaipur: "/images/udaipur.jpg",
+    varanasi: "/images/varanasi.jpg",
+  };
+  return imageMap[destination.toLowerCase()] || "/placeholder.jpg";
 }

@@ -1,90 +1,107 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Search, MapPin } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { searchPlaces } from "@/lib/places-api"
-import Image from "next/image"
-import { useDestination } from "@/lib/destination-context"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, MapPin } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { searchPlaces } from "@/lib/places-api";
+import Image from "next/image";
+import { useDestination } from "@/lib/destination-context";
+import { motion, AnimatePresence } from "framer-motion";
+import { getUnsplashImage } from "@/lib/ai-service";
 
 type Place = {
-  id: string
-  name: string
-  imageUrl: string
-}
+  id: string;
+  name: string;
+  imageUrl: string;
+};
 
 export default function SearchDestination() {
-  const { toast } = useToast()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialDestination = searchParams.get("destination") || ""
+  const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialDestination = searchParams.get("destination") || "";
 
-  const [query, setQuery] = useState(initialDestination)
-  const [places, setPlaces] = useState<Place[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [showResults, setShowResults] = useState(false)
-  const searchRef = useRef<HTMLDivElement>(null)
-  const { setDestination } = useDestination()
+  const [query, setQuery] = useState(initialDestination);
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const { setDestination } = useDestination();
 
-  // Handle click outside to close results
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowResults(false)
+        setShowResults(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-  // Set initial destination from URL if present
   useEffect(() => {
     if (initialDestination) {
-      setDestination(initialDestination)
+      setDestination(initialDestination);
     }
-  }, [initialDestination, setDestination])
+  }, [initialDestination, setDestination]);
 
   const handleSearch = async () => {
-    if (!query.trim()) return
+    if (!query.trim()) return;
 
-    setIsLoading(true)
-    setShowResults(true)
+    setIsLoading(true);
+    setShowResults(true);
 
     try {
-      const results = await searchPlaces(query)
-      setPlaces(results)
+      const results = await searchPlaces(query);
+      const updatedResults = await Promise.all(
+        results.map(async (place: Place) => ({
+          ...place,
+          imageUrl: await isValidImageUrl(place.imageUrl)
+            ? place.imageUrl
+            : await getUnsplashImage(place.name),
+        }))
+      );
+      setPlaces(updatedResults);
     } catch (error) {
       toast({
         title: "Search failed",
         description: "Could not load destination suggestions. Please try again.",
         variant: "destructive",
-      })
-      setPlaces([])
+      });
+      setPlaces([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSelectPlace = (place: Place) => {
-    setQuery(place.name)
-    setShowResults(false)
-    setDestination(place.name)
+    setQuery(place.name);
+    setShowResults(false);
+    setDestination(place.name);
 
-    // Update URL with selected destination
-    router.push(`/?destination=${encodeURIComponent(place.name)}`)
+    router.push(`/?destination=${encodeURIComponent(place.name)}`);
 
     toast({
       title: "Destination selected",
       description: `You've selected ${place.name}. Now customize your trip details below.`,
-    })
+    });
+  };
+
+  async function isValidImageUrl(url: string): Promise<boolean> {
+    if (!url) return false;
+    try {
+      const response = await fetch(url, { method: "HEAD" });
+      const contentType = response.headers.get("content-type");
+      return response.ok && !!contentType && contentType.includes("image");
+    } catch {
+      return false;
+    }
   }
 
   return (
@@ -179,6 +196,5 @@ export default function SearchDestination() {
         </AnimatePresence>
       </div>
     </motion.div>
-  )
+  );
 }
-

@@ -6,26 +6,34 @@ import {
   getDocs,
   deleteDoc,
   query,
-  where,
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
 import { getFirestoreInstance } from "./firebase-config";
 import type { Trip } from "./types";
+import { getStaticImage } from "./utils";
 
 // Save a new trip
 export async function saveTrip(tripData: Omit<Trip, "id" | "createdAt">): Promise<string> {
   const db = getFirestoreInstance();
-  const tripsCollection = collection(db, "trips");
+  const userId = tripData.userId;
+  const tripsCollection = collection(db, `users/${userId}/trips`);
 
-  // Sanitize tripData to remove undefined values and ensure JSON compatibility
-  const sanitizedData = JSON.parse(JSON.stringify(tripData));
+  // Use static image if imageUrl is missing
+  const imageUrl = tripData.imageUrl || getStaticImage(tripData.destination);
+
+  const sanitizedData = JSON.parse(
+    JSON.stringify({
+      ...tripData,
+      imageUrl, // Include imageUrl
+    })
+  );
   const payload = {
     ...sanitizedData,
-    createdAt: serverTimestamp(), // Firestore timestamp
+    createdAt: serverTimestamp(),
   };
 
-  console.log("Saving trip with payload:", payload); // Debug log
+  console.log("Saving trip with payload:", payload);
 
   try {
     const docRef = await addDoc(tripsCollection, payload);
@@ -40,55 +48,59 @@ export async function saveTrip(tripData: Omit<Trip, "id" | "createdAt">): Promis
 // Get all trips for a user
 export async function getUserTrips(userId: string): Promise<Trip[]> {
   const db = getFirestoreInstance();
-  const tripsCollection = collection(db, "trips");
+  const tripsCollection = collection(db, `users/${userId}/trips`);
 
-  const q = query(
-    tripsCollection,
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
-  );
+  const q = query(tripsCollection, orderBy("createdAt", "desc"));
 
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map(
-    (doc) =>
-      ({
-        id: doc.id,
-        ...doc.data(),
-      }) as Trip
-  );
+  try {
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(
+      (doc) =>
+        ({
+          id: doc.id,
+          ...doc.data(),
+        }) as Trip
+    );
+  } catch (error) {
+    console.error("Error fetching user trips:", error);
+    throw new Error("Failed to fetch trips.");
+  }
 }
 
 // Get a specific trip by ID
-export async function getTripById(
-  userId: string,
-  tripId: string
-): Promise<Trip | null> {
+export async function getTripById(userId: string, tripId: string): Promise<Trip | null> {
   const db = getFirestoreInstance();
-  const tripDoc = doc(db, "trips", tripId);
+  const tripDoc = doc(db, `users/${userId}/trips`, tripId);
 
-  const docSnap = await getDoc(tripDoc);
-
-  if (docSnap.exists() && docSnap.data().userId === userId) {
-    return {
-      id: docSnap.id,
-      ...docSnap.data(),
-    } as Trip;
+  try {
+    const docSnap = await getDoc(tripDoc);
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...docSnap.data(),
+      } as Trip;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching trip by ID:", error);
+    return null;
   }
-
-  return null;
 }
 
 // Delete a trip
 export async function deleteTrip(userId: string, tripId: string): Promise<void> {
   const db = getFirestoreInstance();
-  const tripDoc = doc(db, "trips", tripId);
+  const tripDoc = doc(db, `users/${userId}/trips`, tripId);
 
-  const docSnap = await getDoc(tripDoc);
-
-  if (docSnap.exists() && docSnap.data().userId === userId) {
-    await deleteDoc(tripDoc);
-  } else {
-    throw new Error("Trip not found or you do not have permission to delete it");
+  try {
+    const docSnap = await getDoc(tripDoc);
+    if (docSnap.exists()) {
+      await deleteDoc(tripDoc);
+    } else {
+      throw new Error("Trip not found.");
+    }
+  } catch (error) {
+    console.error("Error deleting trip:", error);
+    throw new Error("Failed to delete trip.");
   }
 }

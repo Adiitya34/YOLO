@@ -1,12 +1,42 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
 import type { ItineraryParams, Itinerary } from "./types";
 
-// Define a placeholder/loading animation URL (can be a GIF or static image)
-const PLACEHOLDER_IMAGE = "https://media.giphy.com/media/3o7 bu3XilJ5BOiSGic/giphy.gif"; // Generic loading animation
-// Alternative: Static placeholder
-// const PLACEHOLDER_IMAGE = "https://via.placeholder.com/800x400.png?text=Loading+Travel+Destination";
+const PLACEHOLDER_IMAGE = "/placeholder.jpg";
+
+async function isValidImageUrl(url: string): Promise<boolean> {
+  if (!url || url === PLACEHOLDER_IMAGE) return false;
+  try {
+    const response = await fetch(url, { method: "HEAD" });
+    const contentType = response.headers.get("content-type");
+    return response.ok && !!contentType && contentType.includes("image");
+  } catch {
+    return false;
+  }
+}
+
+export async function getUnsplashImage(query: string): Promise<string> {
+  const UNSPLASH_API_KEY = process.env.UNSPLASH_API_KEY || "";
+  console.log("UNSPLASH_API_KEY:", UNSPLASH_API_KEY); // Debug
+  if (!UNSPLASH_API_KEY) {
+    console.warn("Unsplash API key not set, falling back to placeholder.");
+    return PLACEHOLDER_IMAGE;
+  }
+  try {
+    const response = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
+        query
+      )}&client_id=${UNSPLASH_API_KEY}&per_page=1`
+    );
+    if (!response.ok) {
+      throw new Error(`Unsplash API error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    const imageUrl = data.results[0]?.urls?.regular;
+    return (await isValidImageUrl(imageUrl)) ? imageUrl : PLACEHOLDER_IMAGE;
+  } catch (error) {
+    console.error(`Error fetching Unsplash image for query "${query}":`, error);
+    return PLACEHOLDER_IMAGE;
+  }
+}
 
 export async function generateItinerary(params: ItineraryParams): Promise<Itinerary> {
   const { destination, duration, budget, travelerType, preferences } = params;
@@ -20,8 +50,14 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
 
     Format the response as a JSON object with the following structure:
     {
+      "destination": "${destination}",
+      "duration": ${duration},
+      "budget": "${budget}",
+      "travelerType": "${travelerType}",
+      "imageUrl": "A valid, publicly accessible URL for a high-quality image of ${destination} from Unsplash or Pexels",
       "days": [
         {
+          "dayNumber": 1,
           "title": "Day 1: [Specific Title for ${destination}]",
           "description": "Overview of the day including highlights in ${destination}",
           "activities": [
@@ -30,7 +66,7 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
               "description": "Detailed description of the activity",
               "time": "Time of day (e.g., Morning, Afternoon)",
               "cost": "Estimated cost in ₹",
-              "imageUrl": "A valid URL for an image of this activity in ${destination}, or leave empty",
+              "imageUrl": "A valid, publicly accessible URL for a high-quality image of this activity in ${destination} from Unsplash or Pexels",
               "link": "Optional booking or info URL"
             }
           ],
@@ -38,20 +74,24 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
             "name": "Specific hotel or stay in ${destination}",
             "description": "Brief description of the accommodation",
             "cost": "Cost per night in ₹",
-            "imageUrl": "A valid URL for an image of this accommodation in ${destination}, or leave empty",
+            "imageUrl": "A valid, publicly accessible URL for a high-quality image of this accommodation in ${destination} from Unsplash or Pexels",
             "link": "Booking URL"
           }
         }
       ],
       "estimatedCost": "Total estimated cost in ₹ for the entire trip",
-      "travelTips": ["Tip 1 specific to ${destination}", "Tip 2", "Tip 3"]
+      "travelTips": ["Tip 1 specific to ${destination}", "Tip 2", "Tip 3"],
+      "weatherNote": "Brief note on expected weather in ${destination} during the trip"
     }
 
     Ensure that:
     - There are exactly ${duration} days in the itinerary.
     - Each day has at least 3 activities.
     - All fields are populated with realistic data specific to ${destination}.
-    - Return only the JSON object.
+    - imageUrl fields for destination, activities, and accommodation MUST contain valid, publicly accessible URLs from Unsplash or Pexels that return HTTP 200 status.
+    - Do NOT use empty strings ("") for imageUrl fields; provide a valid URL.
+    - Do NOT return invalid, broken, or inaccessible image URLs.
+    - Return only the JSON object, without additional text, markdown, or code fences.
   `;
 
   try {
@@ -84,28 +124,22 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
 
     const data = await response.json();
     const rawText = data.candidates[0].content.parts[0].text;
-    console.log("Raw API Response:", rawText); // Log raw response for debugging
+    console.log("Raw API Response:", rawText);
 
-    // Extract JSON more robustly
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     let jsonText = jsonMatch ? jsonMatch[0] : rawText;
-    console.log("Extracted JSON Text:", jsonText); // Log extracted JSON
+    console.log("Extracted JSON Text:", jsonText);
 
-    // Attempt to parse JSON, with fallback fixes
     let itinerary: Itinerary;
     try {
       itinerary = JSON.parse(jsonText);
     } catch (parseError) {
       console.error("Initial JSON parsing failed:", parseError);
-
-      // Fix common JSON issues: unquoted keys, trailing commas, incomplete objects
       jsonText = jsonText
-        .replace(/(\w+)(?=\s*:)/g, '"$1"') // Quote unquoted keys
-        .replace(/,\s*}/g, "}") 
-        .replace(/,\s*]/g, "]"); 
-
+        .replace(/(\w+)(?=\s*:)/g, '"$1"')
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]");
       console.log("Fixed JSON Text:", jsonText);
-
       try {
         itinerary = JSON.parse(jsonText);
       } catch (secondParseError) {
@@ -114,25 +148,36 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
       }
     }
 
-    // Validate the itinerary
+    // Validate itinerary
     if (itinerary.days.length !== duration) {
       console.warn(`Generated itinerary has ${itinerary.days.length} days instead of ${duration}.`);
     }
 
-    // Ensure placeholder image URLs
-    itinerary.days.forEach((day) => {
-      day.activities.forEach((activity) => {
-        // Use placeholder if imageUrl is missing or invalid
-        if (!activity.imageUrl || activity.imageUrl === "" || activity.imageUrl.includes("placeholder")) {
-          activity.imageUrl = PLACEHOLDER_IMAGE;
-          console.log(`Set placeholder image for activity: ${activity.name}`);
+    // Ensure valid destination image
+    if (!itinerary.imageUrl || !(await isValidImageUrl(itinerary.imageUrl))) {
+      itinerary.imageUrl = await getUnsplashImage(destination);
+      console.log(`Set destination image for ${destination}: ${itinerary.imageUrl}`);
+    }
+
+    // Process activities and accommodations
+    for (const day of itinerary.days) {
+      day.dayNumber = day.dayNumber || itinerary.days.indexOf(day) + 1;
+
+      for (const activity of day.activities) {
+        if (!activity.imageUrl || !(await isValidImageUrl(activity.imageUrl))) {
+          activity.imageUrl = await getUnsplashImage(`${activity.name} ${destination}`);
+          console.log(`Set image for activity: ${activity.name}: ${activity.imageUrl}`);
         }
-      });
-      if (day.accommodation && (!day.accommodation.imageUrl || day.accommodation.imageUrl === "" || day.accommodation.imageUrl.includes("placeholder"))) {
-        day.accommodation.imageUrl = PLACEHOLDER_IMAGE;
-        console.log(`Set placeholder image for accommodation: ${day.accommodation.name}`);
       }
-    });
+
+      if (
+        day.accommodation &&
+        (!day.accommodation.imageUrl || !(await isValidImageUrl(day.accommodation.imageUrl)))
+      ) {
+        day.accommodation.imageUrl = await getUnsplashImage(`${day.accommodation.name} ${destination}`);
+        console.log(`Set image for accommodation: ${day.accommodation.name}: ${day.accommodation.imageUrl}`);
+      }
+    }
 
     return itinerary;
   } catch (error) {

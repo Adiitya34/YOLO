@@ -1,97 +1,94 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { useToast } from "@/components/ui/use-toast"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, Wallet, Users, ArrowLeft, Trash2, Share2 } from "lucide-react"
-import { getTripById, deleteTrip } from "@/lib/firebase-service"
-import type { Trip } from "@/lib/types"
-import { formatDate } from "@/lib/utils"
-import Image from "next/image"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Wallet, Users, ArrowLeft, Trash2, Share2 } from "lucide-react";
+import { getTripById, deleteTrip } from "@/lib/firebase-service";
+import type { Trip } from "@/lib/types";
+import { formatDate, getStaticImage } from "@/lib/utils";
+import Image from "next/image";
 
 export default function TripDetails({ id }: { id: string }) {
-  const { user } = useAuth()
-  const { toast } = useToast()
-  const router = useRouter()
-  const [trip, setTrip] = useState<Trip | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadTrip() {
-      if (!user || !id) return
+      if (!user || !id) return;
 
       try {
-        const tripData = await getTripById(user.uid, id)
-        setTrip(tripData)
+        const tripData = await getTripById(user.uid, id);
+        setTrip(tripData);
       } catch (error) {
         toast({
           title: "Failed to load trip",
           description: "Could not load the trip details. Please try again.",
           variant: "destructive",
-        })
-        router.push("/trips")
+        });
+        router.push("/trips");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    loadTrip()
-  }, [user, id, toast, router])
+    loadTrip();
+  }, [user, id, toast, router]);
 
   const handleDeleteTrip = async () => {
-    if (!user || !trip) return
+    if (!user || !trip) return;
 
     if (!confirm("Are you sure you want to delete this trip? This action cannot be undone.")) {
-      return
+      return;
     }
 
     try {
-      await deleteTrip(user.uid, trip.id)
-
+      await deleteTrip(user.uid, trip.id);
       toast({
         title: "Trip deleted",
         description: "Your trip has been deleted successfully.",
-      })
-
-      router.push("/trips")
+      });
+      router.push("/trips");
     } catch (error) {
       toast({
         title: "Delete failed",
         description: "Could not delete the trip. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleShareTrip = async () => {
-    if (!trip) return
+    if (!trip) return;
 
     try {
-      await navigator.clipboard.writeText(window.location.href)
-
+      await navigator.clipboard.writeText(window.location.href);
       toast({
         title: "Link copied",
         description: "Trip link copied to clipboard",
-      })
+      });
     } catch (error) {
       toast({
         title: "Copy failed",
         description: "Could not copy the link. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   if (!trip) {
@@ -109,8 +106,10 @@ export default function TripDetails({ id }: { id: string }) {
           </Button>
         </CardFooter>
       </Card>
-    )
+    );
   }
+
+  const destinationImage = trip.imageUrl || getStaticImage(trip.destination);
 
   return (
     <div className="space-y-6">
@@ -138,6 +137,14 @@ export default function TripDetails({ id }: { id: string }) {
             <CardDescription>Created on {formatDate(trip.createdAt)}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="relative h-48 rounded-md overflow-hidden">
+              <Image
+                src={destinationImage}
+                alt={trip.destination}
+                fill
+                className="object-cover"
+              />
+            </div>
             <div className="space-y-2">
               <div className="flex items-center">
                 <Calendar className="mr-2 h-5 w-5 text-muted-foreground" />
@@ -152,7 +159,6 @@ export default function TripDetails({ id }: { id: string }) {
                 <span className="capitalize">{trip.travelerType}</span>
               </div>
             </div>
-
             {trip.preferences && (
               <div>
                 <h3 className="font-medium mb-1">Preferences</h3>
@@ -182,7 +188,7 @@ export default function TripDetails({ id }: { id: string }) {
               {trip.itinerary.days.map((day, index) => (
                 <TabsContent key={index} value={`day-${index + 1}`} className="space-y-4">
                   <div className="space-y-2">
-                    <h3 className="text-xl font-semibold">{day.title}</h3>
+                    <h3 className="text-xl فرایندهای font-semibold">{day.title}</h3>
                     <p className="text-muted-foreground">{day.description}</p>
                   </div>
 
@@ -193,7 +199,7 @@ export default function TripDetails({ id }: { id: string }) {
                           <div className="flex flex-col md:flex-row gap-4">
                             <div className="relative h-40 md:w-1/3 rounded-md overflow-hidden">
                               <Image
-                                src={activity.imageUrl || `/placeholder.svg?height=200&width=300`}
+                                src={activity.imageUrl || getStaticImage(trip.destination)}
                                 alt={activity.name}
                                 fill
                                 className="object-cover"
@@ -234,7 +240,7 @@ export default function TripDetails({ id }: { id: string }) {
                           <div className="flex flex-col md:flex-row gap-4">
                             <div className="relative h-40 md:w-1/3 rounded-md overflow-hidden">
                               <Image
-                                src={day.accommodation.imageUrl || `/placeholder.svg?height=200&width=300`}
+                                src={day.accommodation.imageUrl || getStaticImage(trip.destination)}
                                 alt={day.accommodation.name}
                                 fill
                                 className="object-cover"
@@ -261,6 +267,23 @@ export default function TripDetails({ id }: { id: string }) {
                       </Card>
                     </div>
                   )}
+
+                  {day.transportation && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Transportation</h3>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            <h4 className="font-semibold">{day.transportation.mode}</h4>
+                            <p className="text-sm text-muted-foreground">{day.transportation.description}</p>
+                            <p className="text-sm">
+                              <span className="font-medium">Cost:</span> {day.transportation.cost}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </TabsContent>
               ))}
             </Tabs>
@@ -268,6 +291,13 @@ export default function TripDetails({ id }: { id: string }) {
           <CardFooter className="flex-col items-start gap-2">
             <h3 className="font-semibold">Estimated Total Cost</h3>
             <p className="text-muted-foreground">{trip.itinerary.estimatedCost}</p>
+
+            {trip.itinerary.weatherNote && (
+              <>
+                <h3 className="font-semibold mt-2">Weather Note</h3>
+                <p className="text-sm text-muted-foreground">{trip.itinerary.weatherNote}</p>
+              </>
+            )}
 
             {trip.itinerary.travelTips && (
               <>
@@ -283,6 +313,5 @@ export default function TripDetails({ id }: { id: string }) {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,19 +1,23 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import Image from "next/image"
-import Link from "next/link"
-import { MapPin } from "lucide-react"
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { MapPin } from "lucide-react";
+import { getStaticImage } from "@/lib/utils";
 
 interface DestinationCardProps {
-  id: string
-  name: string
-  imageUrl: string
-  description?: string
-  index: number
+  id: string;
+  name: string;
+  imageUrl?: string; // Make optional
+  description?: string;
+  index: number;
 }
 
 export default function DestinationCard({ id, name, imageUrl, description, index }: DestinationCardProps) {
+  // Use static image as fallback
+  const finalImageUrl = imageUrl || getStaticImage(name);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -26,7 +30,7 @@ export default function DestinationCard({ id, name, imageUrl, description, index
         <div className="relative overflow-hidden rounded-xl">
           <div className="aspect-[4/3] relative">
             <Image
-              src={imageUrl || "/placeholder.svg?height=300&width=400"}
+              src={finalImageUrl}
               alt={name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -45,6 +49,5 @@ export default function DestinationCard({ id, name, imageUrl, description, index
         </div>
       </Link>
     </motion.div>
-  )
+  );
 }
-

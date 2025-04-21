@@ -11,7 +11,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { initializeFirebase, auth } from "./firebase-config"; // Import auth instance
+import { initializeFirebase, auth } from "./firebase-config";
 import { useToast } from "@/components/ui/use-toast";
 
 // Initialize Firebase
@@ -59,23 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Error signing in:", error);
-      if (error.code === "auth/unauthorized-domain") {
-        const errorMessage =
-          "This domain is not authorized for authentication. Please add it to your Firebase console or use email sign-in instead.";
-        setAuthError(errorMessage);
-        toast({
-          title: "Authentication Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      } else {
-        setAuthError(error.message || "Failed to sign in");
-        toast({
-          title: "Authentication Error",
-          description: error.message || "Failed to sign in",
-          variant: "destructive",
-        });
-      }
+      const errorMessage = error.code === "auth/unauthorized-domain"
+        ? "This domain is not authorized for authentication. Please add it to your Firebase console or use email sign-in instead."
+        : error.message || "Failed to sign in with Google";
+      setAuthError(errorMessage);
+      toast({
+        title: "Authentication Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
@@ -85,10 +77,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
       console.error("Error signing in with email:", error);
-      setAuthError(error.message || "Failed to sign in");
+      let errorMessage = "Failed to sign in with email";
+      switch (error.code) {
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address.";
+          break;
+        case "auth/user-not-found":
+          errorMessage = "No account found with this email.";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "Incorrect password.";
+          break;
+        case "auth/too-many-requests":
+          errorMessage = "Too many attempts. Please try again later.";
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      setAuthError(errorMessage);
       toast({
         title: "Authentication Error",
-        description: error.message || "Failed to sign in with email",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -100,10 +109,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await createUserWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
       console.error("Error signing up with email:", error);
-      setAuthError(error.message || "Failed to sign up");
+      let errorMessage = "Failed to create account";
+      switch (error.code) {
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address.";
+          break;
+        case "auth/email-already-in-use":
+          errorMessage = "This email is already registered.";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Password is too weak. Use at least 6 characters.";
+          break;
+        case "auth/operation-not-allowed":
+          errorMessage = "Email/Password sign-up is disabled.";
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+      setAuthError(errorMessage);
       toast({
         title: "Authentication Error",
-        description: error.message || "Failed to create account",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -114,6 +140,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Error signing out:", error);
+      toast({
+        title: "Sign Out Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

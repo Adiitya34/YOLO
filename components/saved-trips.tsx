@@ -1,13 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Calendar, Wallet, Users, Trash2 } from "lucide-react"
+import { Calendar, Wallet, Users, Trash2, RefreshCw } from "lucide-react"
 import { getUserTrips, deleteTrip } from "@/lib/firebase-service"
 import type { Trip } from "@/lib/types"
 import { formatDate } from "@/lib/utils"
@@ -15,44 +22,46 @@ import { formatDate } from "@/lib/utils"
 export default function SavedTrips() {
   const { user } = useAuth()
   const { toast } = useToast()
+
   const [trips, setTrips] = useState<Trip[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTrips, setSelectedTrips] = useState<string[]>([])
 
-  useEffect(() => {
-    async function loadTrips() {
-      if (!user) return
+  const loadTrips = useCallback(async () => {
+    if (!user) return
+    setIsLoading(true)
 
-      try {
-        const userTrips = await getUserTrips(user.uid)
-        setTrips(userTrips)
-      } catch (error) {
-        toast({
-          title: "Failed to load trips",
-          description: "Could not load your saved trips. Please try again.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
+    try {
+      const userTrips = await getUserTrips(user.uid)
+      setTrips(userTrips)
+    } catch {
+      toast({
+        title: "Failed to load trips",
+        description: "Could not load your saved trips. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    loadTrips()
   }, [user, toast])
+
+  useEffect(() => {
+    loadTrips()
+  }, [loadTrips])
 
   const handleDeleteTrip = async (tripId: string) => {
     if (!user) return
 
     try {
       await deleteTrip(user.uid, tripId)
-      setTrips(trips.filter((trip) => trip.id !== tripId))
-      setSelectedTrips(selectedTrips.filter((id) => id !== tripId))
+      setTrips((prev) => prev.filter((trip) => trip.id !== tripId))
+      setSelectedTrips((prev) => prev.filter((id) => id !== tripId))
 
       toast({
         title: "Trip deleted",
         description: "Your trip has been deleted successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Delete failed",
         description: "Could not delete the trip. Please try again.",
@@ -62,7 +71,9 @@ export default function SavedTrips() {
   }
 
   const handleSelectTrip = (tripId: string) => {
-    setSelectedTrips((prev) => (prev.includes(tripId) ? prev.filter((id) => id !== tripId) : [...prev, tripId]))
+    setSelectedTrips((prev) =>
+      prev.includes(tripId) ? prev.filter((id) => id !== tripId) : [...prev, tripId]
+    )
   }
 
   const handleCompareTrips = () => {
@@ -105,18 +116,27 @@ export default function SavedTrips() {
 
   return (
     <div className="space-y-6">
-      {selectedTrips.length > 0 && (
-        <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-          <p>{selectedTrips.length} trips selected</p>
-          <div className="flex gap-2">
+      {/* Top Controls */}
+      <div className="flex justify-between items-center mb-4">
+        {selectedTrips.length > 0 ? (
+          <div className="flex items-center gap-4">
+            <p>{selectedTrips.length} trips selected</p>
             <Button variant="outline" onClick={() => setSelectedTrips([])}>
               Clear Selection
             </Button>
             <Button onClick={handleCompareTrips}>Compare Selected</Button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div />
+        )}
 
+        <Button variant="outline" onClick={loadTrips} disabled={isLoading}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Trips
+        </Button>
+      </div>
+
+      {/* Trip Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {trips.map((trip) => (
           <Card key={trip.id} className="overflow-hidden">
@@ -164,4 +184,3 @@ export default function SavedTrips() {
     </div>
   )
 }
-
