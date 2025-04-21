@@ -277,10 +277,10 @@ export default function TripForm() {
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Spinning the globe... 🌍🌀
                   </>
                 ) : (
-                  "Create Itinerary"
+                  "Plan my Trip ✈︎"
                 )}
               </Button>
             </motion.div>

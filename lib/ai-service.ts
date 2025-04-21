@@ -14,7 +14,7 @@ async function isValidImageUrl(url: string): Promise<boolean> {
 }
 
 export async function getUnsplashImage(query: string): Promise<string> {
-  const UNSPLASH_API_KEY = process.env.UNSPLASH_API_KEY || "";
+  const UNSPLASH_API_KEY = process.env.NEXT_PUBLIC_UNSPLASH_API_KEY || "";
   console.log("UNSPLASH_API_KEY:", UNSPLASH_API_KEY); // Debug
   if (!UNSPLASH_API_KEY) {
     console.warn("Unsplash API key not set, falling back to placeholder.");
@@ -148,18 +148,15 @@ export async function generateItinerary(params: ItineraryParams): Promise<Itiner
       }
     }
 
-    // Validate itinerary
     if (itinerary.days.length !== duration) {
       console.warn(`Generated itinerary has ${itinerary.days.length} days instead of ${duration}.`);
     }
 
-    // Ensure valid destination image
     if (!itinerary.imageUrl || !(await isValidImageUrl(itinerary.imageUrl))) {
       itinerary.imageUrl = await getUnsplashImage(destination);
       console.log(`Set destination image for ${destination}: ${itinerary.imageUrl}`);
     }
 
-    // Process activities and accommodations
     for (const day of itinerary.days) {
       day.dayNumber = day.dayNumber || itinerary.days.indexOf(day) + 1;
 

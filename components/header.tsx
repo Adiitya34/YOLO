@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/lib/auth-context"
-import { ThemeToggle } from "./theme-toggle"
-import { MapPin, Menu, X, LogIn, Mail } from "lucide-react"
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
+import { ThemeToggle } from "./theme-toggle";
+import { MapPin, Menu, X, LogIn, Mail, Instagram, Coffee } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function Header() {
-  const { user, signIn, signOut } = useAuth()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const { user, signIn, signOut } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
-    }
+      setScrolled(window.scrollY > 10);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <motion.header
@@ -45,6 +45,42 @@ export default function Header() {
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            {/* Instagram Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              aria-label="Follow us on Instagram"
+            >
+              <a
+                href="https://www.instagram.com/adiitya.j/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <Instagram className="h-6 w-6" />
+                <span>Developer</span>
+              </a>
+            </Button>
+            {/* Buy Me a Coffee Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              aria-label="Support us on Buy Me a Coffee"
+            >
+              <a
+                href="https://www.buymeacoffee.com/adiitya"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1"
+              >
+                <Coffee className="h-4 w-4" />
+                <span>Support</span>
+              </a>
+            </Button>
+          </div>
           <Link href="/" className="hover:text-primary transition-colors">
             Home
           </Link>
@@ -92,6 +128,42 @@ export default function Header() {
             transition={{ duration: 0.3 }}
           >
             <nav className="flex flex-col gap-4">
+              {/* Instagram Button (Mobile) */}
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                aria-label="Follow us on Instagram"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <a
+                  href="https://www.instagram.com/adiitya.j/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <Instagram className="h-5 w-5" />
+                  Follow on Instagram
+                </a>
+              </Button>
+              {/* Buy Me a Coffee Button (Mobile) */}
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                aria-label="Support us on Buy Me a Coffee"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <Coffee className="h-5 w-5" />
+                  Buy Me a Coffee
+                </a>
+              </Button>
               <Link href="/" className="hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 Home
               </Link>
@@ -131,6 +203,5 @@ export default function Header() {
         )}
       </AnimatePresence>
     </motion.header>
-  )
+  );
 }
-

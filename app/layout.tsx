@@ -1,4 +1,4 @@
-// app/layout.tsx
+// C:/Users/aadij/OneDrive/Desktop/yolotrippin2/app/layout.tsx
 import type React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -18,18 +18,20 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning><body className={inter.className}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <AuthProvider>
-          <DestinationProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <div className="flex-1">{children}</div>
-              <Footer />
-            </div>
-          </DestinationProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </body></html>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <DestinationProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <div className="flex-1">{children}</div>
+                <Footer />
+              </div>
+            </DestinationProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
