@@ -143,5 +143,45 @@ export const indiaDestinations = [
     id: "29",
     name: "Ujjain",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "30",
+    name: "Khajuraho",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "31",
+    name: "Tirupati",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "32",
+    name: "Ooty",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "33",
+    name: "Kanha National Park",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "34",
+    name: "Nainital",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "35",
+    name: "Sundarbans",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "36",
+    name: "Rajasthan Desert",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+  },
+  {
+    id: "37",
+    name: "Sundarbans",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png"
   }
 ];
