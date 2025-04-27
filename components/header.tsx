@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "./theme-toggle";
-import { MapPin, Menu, X, LogIn, Mail, Instagram, Coffee } from "lucide-react";
+import { MapPin, Menu, X, LogIn, Mail, Linkedin, Coffee } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,9 +25,7 @@ export default function Header() {
 
   return (
     <motion.header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-transparent"
-      }`}
+      className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-transparent"}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
@@ -46,20 +44,20 @@ export default function Header() {
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <div className="flex items-center gap-2">
-            {/* Instagram Button */}
+            {/* LinkedIn Button */}
             <Button
               variant="ghost"
               size="sm"
               asChild
-              aria-label="Follow us on Instagram"
+              aria-label="Follow us on LinkedIn"
             >
               <a
-                href="https://www.instagram.com/adiitya.j/"
+                href="https://www.linkedin.com/in/aadiboi/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"
               >
-                <Instagram className="h-6 w-6" />
+                <Linkedin className="h-6 w-6" />
                 <span>Developer</span>
               </a>
             </Button>
@@ -128,22 +126,22 @@ export default function Header() {
             transition={{ duration: 0.3 }}
           >
             <nav className="flex flex-col gap-4">
-              {/* Instagram Button (Mobile) */}
+              {/* LinkedIn Button (Mobile) */}
               <Button
                 variant="ghost"
                 size="sm"
                 asChild
-                aria-label="Follow us on Instagram"
+                aria-label="Follow us on LinkedIn"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <a
-                  href="https://www.instagram.com/adiitya.j/"
+                  href="https://www.linkedin.com/in/adiitya-j/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
                 >
-                  <Instagram className="h-5 w-5" />
-                  Follow on Instagram
+                  <Linkedin className="h-5 w-5" />
+                  Follow on LinkedIn
                 </a>
               </Button>
               {/* Buy Me a Coffee Button (Mobile) */}

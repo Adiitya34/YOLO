@@ -11,10 +11,9 @@ interface ImageBackgroundProps {
 }
 
 export default function ImageBackground({ 
-  imageSrc = "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0", 
+  imageSrc = "https://imgs.search.brave.com/r73rmhe4J4EUTH8-WzCXGD_cR5kp0992xnrnrVnlBMk/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS12ZWN0b3Iv/ZmxhdC1iYWNrZ3Jv/dW5kLXdvcmxkLXRv/dXJpc20tZGF5LWNl/bGVicmF0aW9uXzIz/LTIxNTA2NzcyNDcu/anBnP3NlbXQ9YWlz/X2h5YnJpZCZ3PTc0/MA", 
   
-  // ✅ Replace with a direct image URL
-  // https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0
+  
   overlayOpacity = 0.5, 
   children 
 }: ImageBackgroundProps) {
